@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { CabecalhoSite } from "@/components/cabecalho";
 import { Espelho } from "@/components/espelho";
-import { BarraFixa, Catalogo, CatalogoEsqueleto, Combinados, FaixaConfianca, QuemAtende, Rodape, RodapeBasico } from "@/components/secoes-home";
+import { BarraFixa, Catalogo, CatalogoEsqueleto, Combinados, FaixaConfianca, Galeria, QuemAtende, Rodape, RodapeBasico } from "@/components/secoes-home";
 
 export default function Home() {
   return (
@@ -52,6 +52,8 @@ export default function Home() {
             </Suspense>
           </div>
         </section>
+
+        <Galeria />
 
         <Suspense fallback={<div className="h-60" />}>
           <QuemAtende />

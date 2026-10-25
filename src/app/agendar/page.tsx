@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { CabecalhoSite } from "@/components/cabecalho";
@@ -56,6 +57,20 @@ export default function Page(props: { searchParams: Promise<{ servico?: string }
     <>
       <CabecalhoSite />
       <main>
+        <div className="container-site flex items-end justify-between gap-4 pt-6 md:pt-10">
+          <div className="pb-2 md:pb-6">
+            <p className="font-display text-3xl sm:text-5xl">Vamos marcar?</p>
+            <p className="mt-2 max-w-sm text-suave">Escolha o serviço e o horário. Leva menos de um minuto.</p>
+          </div>
+          <Image
+            src="/fotos/recorte-tchau.webp"
+            alt="Eliana acenando"
+            width={640}
+            height={726}
+            sizes="(min-width:768px) 12rem, 8rem"
+            className="w-32 flex-none md:w-48"
+          />
+        </div>
         <Suspense
           fallback={
             <div className="container-site py-16" aria-busy>

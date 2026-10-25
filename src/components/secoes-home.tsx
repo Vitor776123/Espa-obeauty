@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getConfig, listarHorarios, listarServicos } from "@/lib/dados";
 import { resumoHorario } from "@/lib/horario-texto";
 import { GradeServicos, type ServicoPublico } from "@/components/grade-servicos";
+import Image from "next/image";
+import { fotoDoServico } from "@/lib/fotos";
 import { Marca } from "@/components/marca";
 import { IconeRelogio, IconeSino, IconeVolta, IconeZap } from "@/components/icones";
 
@@ -17,7 +19,7 @@ export async function Catalogo() {
       categoria: s.categoria,
       descricao: s.descricao ?? "",
       descricaoLonga: s.descricao_longa ?? "",
-      foto: s.foto_url,
+      foto: fotoDoServico(s.slug, s.foto_url),
       passos: s.passos,
       temTamanho: s.tem_tamanho,
       preco: precos.length ? Math.min(...precos) : 0,
@@ -180,19 +182,42 @@ export async function FaixaConfianca() {
   );
 }
 
+export function Galeria() {
+  return (
+    <section className="bg-perola-2">
+      <div className="container-site py-20 md:py-24">
+        <div className="mb-10 max-w-xl">
+          <h2 className="titulo-secao">Um cantinho para relaxar</h2>
+          <p className="mt-4 text-suave">Cadeiras confortáveis, luz suave e o cuidado de quem faz com carinho.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:gap-5">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-suave md:rounded-3xl">
+            <Image src="/fotos/salao-placa.webp" alt="Eliana no salão, ao lado da placa Espaço Beauty" fill sizes="(min-width:1024px) 34rem, 48vw" className="object-cover" />
+          </div>
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-suave md:mt-12 md:rounded-3xl">
+            <Image src="/fotos/salao-pose.webp" alt="Eliana com tesoura e pente na bancada do salão" fill sizes="(min-width:1024px) 34rem, 48vw" className="object-cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export async function QuemAtende() {
   const cfg = await getConfig();
   const zap = cfg.whatsapp?.replace(/\D/g, "");
   return (
     <section>
       <div className="container-site grid items-center gap-10 py-20 md:grid-cols-[15rem_1fr] md:gap-16 md:py-24">
-        <div
-          role="img"
-          aria-label="Espaço reservado para a foto da Eliana"
-          className="arco-suave relative mx-auto grid aspect-[3/4] w-[70%] max-w-56 place-items-center font-display text-8xl italic text-white/90 shadow-suave ring-[6px] ring-perola outline outline-1 outline-offset-[6px] outline-linha md:w-full"
-          style={{ background: "linear-gradient(160deg, #d98aa0, #8a2548)" }}
-        >
-          E
+        <div className="arco-suave relative mx-auto aspect-[3/4] w-[78%] max-w-64 overflow-hidden shadow-suave ring-[6px] ring-perola outline outline-1 outline-offset-[6px] outline-linha md:w-full" style={{ background: "linear-gradient(160deg, #e7a3b2, #8a2548)" }}>
+          <Image
+            src="/fotos/recorte-bracos.webp"
+            alt="Eliana Domingues, de braços cruzados, sorrindo"
+            width={720}
+            height={922}
+            sizes="(min-width:768px) 15rem, 60vw"
+            className="absolute bottom-0 left-1/2 w-[112%] max-w-none -translate-x-1/2"
+          />
         </div>
         <div>
           <h2 className="titulo-secao">Quem atende você</h2>

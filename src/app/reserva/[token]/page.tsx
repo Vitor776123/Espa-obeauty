@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -51,9 +52,16 @@ async function Conteudo({ params }: { params: Promise<{ token: string }> }) {
 
   return (
     <div className="container-site max-w-3xl py-8 md:py-14">
-      <p className="mb-3 text-sm font-semibold text-framboesa">Olá, {ag.cliente.nome.split(" ")[0]}</p>
-      <h1 className="text-4xl sm:text-5xl">{t.h}</h1>
-      <p className="mt-4 max-w-xl text-lg text-suave">{t.p}</p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="mb-3 text-sm font-semibold text-framboesa">Olá, {ag.cliente.nome.split(" ")[0]}</p>
+          <h1 className="text-4xl sm:text-5xl">{t.h}</h1>
+          <p className="mt-4 max-w-xl text-lg text-suave">{t.p}</p>
+        </div>
+        {ag.status === "confirmado" || ag.status === "concluido" ? (
+          <Image src="/fotos/recorte-joia.webp" alt="Eliana fazendo joinha" width={640} height={777} sizes="9rem" className="hidden w-32 flex-none sm:block md:w-40" />
+        ) : null}
+      </div>
 
       <div className="mt-8 space-y-6">
         {aguardando && pix ? (

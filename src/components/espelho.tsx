@@ -1,3 +1,4 @@
+import Image from "next/image";
 /**
  * O espelho de camarim do hero: moldura em arco com lâmpadas que acendem uma a uma.
  * Geometria em um quadro de 400 × 540; as posições viram porcentagens do contêiner.
@@ -62,17 +63,15 @@ export function Espelho() {
           className="respirando absolute -left-1/4 top-0 h-full w-1/2 -skew-x-12"
           style={{ background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent)" }}
         />
-        <div className="relative flex h-full flex-col items-center justify-center px-[10%] pb-[8%] pt-[18%] text-center text-ameixa">
-          <span className="font-display italic leading-[0.95]" style={{ fontSize: "15cqw", letterSpacing: "-0.02em" }}>
-            Espaço
-            <br />
-            Beauty
-          </span>
-          <span className="my-[5cqw] block h-px w-[22cqw] bg-framboesa/60" />
-          <span className="font-medium tracking-[0.05em] text-suave" style={{ fontSize: "4cqw" }}>
-            Eliana Domingues
-          </span>
-        </div>
+        <Image
+          src="/fotos/recorte-tesoura.webp"
+          alt="Eliana Domingues com tesoura e pente"
+          width={760}
+          height={1078}
+          priority
+          sizes="(min-width:768px) 26rem, 17rem"
+          className="absolute bottom-0 left-1/2 w-[104%] max-w-none -translate-x-1/2"
+        />
       </div>
       {/* lâmpadas */}
       {LAMPADAS.map((p, i) => (
