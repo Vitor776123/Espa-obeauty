@@ -71,7 +71,13 @@ export function GradeServicos({ servicos }: { servicos: ServicoPublico[] }) {
     if (!aberto && d.open) d.close();
   }, [aberto]);
 
-  const categorias = Array.from(new Set(servicos.map((s) => s.categoria)));
+  // Ordem de exibição: o carro-chefe (tratamentos e coloração) primeiro, depois cabelo, unhas e o resto.
+  const ORDEM_CATEGORIAS = ["Tratamentos e coloração", "Cabelo", "Unhas"];
+  const posicao = (c: string) => {
+    const i = ORDEM_CATEGORIAS.indexOf(c);
+    return i === -1 ? ORDEM_CATEGORIAS.length : i;
+  };
+  const categorias = Array.from(new Set(servicos.map((s) => s.categoria))).sort((a, b) => posicao(a) - posicao(b));
 
   return (
     <>

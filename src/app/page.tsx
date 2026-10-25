@@ -10,7 +10,11 @@ export default function Home() {
       <CabecalhoSite />
       <main>
         <section className="hero-escuro no-escuro text-perola">
-         <div className="container-site grid items-center gap-10 pb-10 pt-4 md:grid-cols-[1.15fr_1fr] md:gap-8 md:pb-24 md:pt-10">
+         <div className="container-site grid items-center gap-8 pb-10 pt-2 md:grid-cols-[1.15fr_1fr] md:gap-8 md:pb-24 md:pt-10">
+          {/* No celular a foto vem primeiro; no desktop o texto fica à esquerda e a foto à direita */}
+          <div className="order-first mx-auto w-full max-w-[19rem] md:order-last md:max-w-none md:px-0">
+            <Espelho />
+          </div>
           <div>
             <h1 className="entrada text-[clamp(2.6rem,6.4vw,5rem)]">
               Hora marcada
@@ -30,9 +34,6 @@ export default function Home() {
                 Ver serviços
               </Link>
             </div>
-          </div>
-          <div className="mx-auto w-full max-w-[17rem] md:max-w-none md:px-0">
-            <Espelho />
           </div>
          </div>
         </section>
