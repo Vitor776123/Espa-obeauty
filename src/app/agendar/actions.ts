@@ -5,7 +5,8 @@ import { db } from "@/lib/supabase/admin";
 import { agendamentoPorId, calcularDisponibilidade, expirarVencidas, reservar, resolverOferta } from "@/lib/reservas";
 import { criarCobrancaPix } from "@/lib/pagamentos";
 import { mpAtivo } from "@/lib/mercadopago";
-import { dataValida } from "@/lib/tempo";
+import { dataCurta, dataValida, formatBRL } from "@/lib/tempo";
+import { avisarEquipe, seguro } from "@/lib/push";
 
 const id = z.uuid();
 const base = {
@@ -88,5 +89,13 @@ export async function criarReservaPublica(entrada: z.input<typeof reservaSchema>
       return { ok: false, erro: "Não conseguimos gerar o PIX agora. Tente de novo em instantes." };
     }
   }
+  await seguro(() =>
+    avisarEquipe({
+      titulo: "Nova reserva",
+      corpo: `${p.nome} · ${dataCurta(p.data)} ${p.hora}${r.valorACobrar > 0 ? ` · aguardando o PIX de ${formatBRL(r.valorACobrar)}` : ""}`,
+      url: "/painel/agenda",
+      tag: `reserva-${r.agendamento.id}`,
+    }),
+  );
   return { ok: true, token: r.agendamento.token_gerenciar };
 }

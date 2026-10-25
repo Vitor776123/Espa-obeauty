@@ -16,6 +16,8 @@ import {
   salvarObservacao,
   type Resposta,
 } from "@/app/painel/acoes";
+import { linkWhatsappCliente } from "@/lib/whatsapp";
+import { IconeZap } from "@/components/icones";
 import { SeloPagamento, SeloStatus } from "@/app/painel/ui";
 
 type Props = {
@@ -39,7 +41,7 @@ function Detalhe({ ag, hoje, maxData, fechar }: { ag: AgendamentoCompleto; hoje:
   const falta = Math.max(0, Math.round((ag.valor_total - ag.valor_pago) * 100) / 100);
   const ativo = ["aguardando_pagamento", "pendente", "confirmado"].includes(ag.status);
   const fone = formatTelefone(ag.cliente.telefone);
-  const zap = `https://wa.me/55${ag.cliente.telefone}`;
+  const zap = linkWhatsappCliente(ag);
 
   const buscarDias = useCallback(
     (p: { ano: number; mes: number }) => diasLivresParaRemarcar({ id: ag.id, ano: p.ano, mes: p.mes }),
@@ -57,7 +59,7 @@ function Detalhe({ ag, hoje, maxData, fechar }: { ag: AgendamentoCompleto; hoje:
   }
 
   return (
-    <div className="flex max-h-[inherit] flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-start justify-between gap-4 border-b border-linha px-6 py-5">
         <div>
           <h2 className="text-3xl">{ag.cliente.nome}</h2>
@@ -71,11 +73,16 @@ function Detalhe({ ag, hoje, maxData, fechar }: { ag: AgendamentoCompleto; hoje:
         </button>
       </div>
 
-      <div className="space-y-6 overflow-y-auto px-6 py-6">
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
         <div className="flex flex-wrap gap-2">
           <SeloStatus status={ag.status} />
           <SeloPagamento status={ag.pagamento_status} />
         </div>
+
+        <a href={zap} target="_blank" rel="noreferrer" className="btn w-full justify-center gap-2.5 bg-ok text-white shadow-suave hover:brightness-110 sm:w-auto">
+          <IconeZap className="h-5 w-5" />
+          Chamar {ag.cliente.nome.split(" ")[0]} no WhatsApp
+        </a>
 
         <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
           <div>
@@ -258,10 +265,11 @@ export function CartaoAgendamento({ ag, hoje, maxData, mostrarProfissional, most
 
   return (
     <>
+      <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className={`group flex w-full items-center gap-4 rounded-2xl border border-linha bg-white p-4 text-left transition hover:border-framboesa hover:shadow-suave ${inativo ? "opacity-60" : ""}`}
+        className={`group flex min-w-0 flex-1 items-center gap-4 rounded-2xl border border-linha bg-white p-4 text-left transition hover:border-framboesa hover:shadow-suave ${inativo ? "opacity-60" : ""}`}
       >
         <span
           className="tabular shrink-0 font-display text-2xl leading-none"
@@ -289,6 +297,18 @@ export function CartaoAgendamento({ ag, hoje, maxData, mostrarProfissional, most
           </span>
         ) : null}
       </button>
+      {!inativo ? (
+        <a
+          href={linkWhatsappCliente(ag)}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Chamar ${ag.cliente.nome} no WhatsApp`}
+          className="grid h-12 w-12 flex-none place-items-center rounded-full bg-ok text-white shadow-suave"
+        >
+          <IconeZap className="h-6 w-6" />
+        </a>
+      ) : null}
+      </div>
 
       <dialog ref={ref} className="gaveta" onClose={() => setAberto(false)} onClick={(e) => e.target === ref.current && setAberto(false)}>
         {aberto ? <Detalhe ag={ag} hoje={hoje} maxData={maxData} fechar={() => setAberto(false)} /> : null}

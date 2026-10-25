@@ -268,7 +268,7 @@ export function Wizard(props: Props) {
                 </div>
               ) : null}
 
-              <div className="mt-8">
+              <div className="mt-8 sticky bottom-0 z-20 -mx-5 border-t border-linha bg-perola/95 px-5 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
                 <button type="button" className="btn btn-principal w-full sm:w-auto" disabled={!servicoPronto} onClick={() => setPasso(1)}>
                   Continuar
                 </button>
@@ -321,7 +321,7 @@ export function Wizard(props: Props) {
                   chave={`${servicoId}-${variacaoId}`}
                 />
               </div>
-              <div className="mt-8">
+              <div className="mt-8 sticky bottom-0 z-20 -mx-5 border-t border-linha bg-perola/95 px-5 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
                 <button type="button" className="btn btn-principal w-full sm:w-auto" disabled={!horarioPronto} onClick={() => setPasso(2)}>
                   Continuar
                 </button>
@@ -445,7 +445,7 @@ export function Wizard(props: Props) {
                 </p>
               ) : null}
 
-              <div className="mt-8">
+              <div className="mt-8 sticky bottom-0 z-20 -mx-5 border-t border-linha bg-perola/95 px-5 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
                 <button type="button" className="btn btn-principal w-full sm:w-auto" onClick={enviar} disabled={enviando}>
                   {enviando ? "Reservando…" : `Reservar e pagar ${formatBRL(sinalPct <= 0 || sinalPct >= 100 ? preco : cobranca)}`}
                 </button>

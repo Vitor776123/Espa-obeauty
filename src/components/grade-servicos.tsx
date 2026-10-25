@@ -117,8 +117,8 @@ export function GradeServicos({ servicos }: { servicos: ServicoPublico[] }) {
         }}
       >
         {aberto ? (
-          <div className="flex max-h-[inherit] flex-col">
-            <div className="flex-1 overflow-y-auto overscroll-contain">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <div className="relative">
                 <div className="relative mx-auto mt-6 aspect-[16/10] max-h-52 w-[calc(100%-3rem)] max-w-xl sm:max-h-60 overflow-hidden rounded-2xl bg-cha-claro">
                   <Foto s={aberto} sizes="(min-width:768px) 36rem, 90vw" />

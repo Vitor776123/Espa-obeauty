@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { SeletorHorario } from "@/components/seletor-horario";
+import { IconeZap } from "@/components/icones";
 import { inscrever, inscricaoAtual, pushSuportado } from "@/lib/push-cliente";
 import { dataPorExtenso, formatBRL } from "@/lib/tempo";
 import {
@@ -130,6 +131,22 @@ export function PixAutomatico({
 
 /* ---------------- PIX manual ---------------- */
 
+/** Botão verde que leva a cliente ao WhatsApp da Eliana com a mensagem do comprovante já escrita. */
+export function ComprovanteWhatsApp({ link }: { link: string | null }) {
+  if (!link) return null;
+  return (
+    <a
+      href={link}
+      target="_blank"
+      rel="noreferrer"
+      className="btn w-full justify-center gap-2.5 bg-ok text-white shadow-suave hover:brightness-110 sm:w-auto"
+    >
+      <IconeZap className="h-5 w-5" />
+      Enviar comprovante no WhatsApp
+    </a>
+  );
+}
+
 export function PixManual({
   token,
   chave,
@@ -156,7 +173,7 @@ export function PixManual({
       {chave ? (
         <>
           <p className="mt-2 text-suave">
-            Pague pelo app do seu banco e depois toque em “Já paguei”. A Eliana confere e confirma o horário.
+            Pague pelo app do seu banco, envie o comprovante no WhatsApp e toque em “Já paguei”. A Eliana confere e confirma o horário.
           </p>
           <div className="mt-6 rounded-2xl bg-cha-claro p-5">
             <p className="text-sm text-suave">Chave PIX{favorecido ? ` · ${favorecido}` : ""}</p>
@@ -179,11 +196,20 @@ export function PixManual({
           {erro}
         </p>
       ) : null}
-      <div className="mt-6 flex flex-wrap gap-3">
-        {chave ? (
+      {zapLink ? (
+        <div className="mt-6 rounded-2xl border border-ok/30 bg-ok/10 p-5">
+          <p className="font-semibold">Para finalizar o seu agendamento, envie o comprovante do PIX no WhatsApp.</p>
+          <p className="mt-1 text-sm text-suave">O botão abre a conversa com a Eliana já com a mensagem pronta. É só anexar o comprovante e enviar.</p>
+          <div className="mt-4">
+            <ComprovanteWhatsApp link={zapLink} />
+          </div>
+        </div>
+      ) : null}
+      {chave ? (
+        <div className="mt-4">
           <button
             type="button"
-            className="btn btn-principal"
+            className="btn btn-principal w-full sm:w-auto"
             disabled={pendente}
             onClick={() =>
               iniciar(async () => {
@@ -195,13 +221,8 @@ export function PixManual({
           >
             {pendente ? "Enviando…" : "Já paguei"}
           </button>
-        ) : null}
-        {zapLink ? (
-          <a href={zapLink} target="_blank" rel="noreferrer" className="btn btn-contorno">
-            Enviar comprovante no WhatsApp
-          </a>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

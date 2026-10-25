@@ -93,6 +93,7 @@ export function SeletorHorario({ hoje, maxData, profissionalId, data, hora, onCh
   const seqDias = useRef(0);
   const seqHoras = useRef(0);
   const blocoHoras = useRef<HTMLDivElement>(null);
+  const autoAvancar = useRef(!data);
 
   // dias livres do mês
   useEffect(() => {
@@ -101,7 +102,17 @@ export function SeletorHorario({ hoje, maxData, profissionalId, data, hora, onCh
     setErro(null);
     buscarDias({ ano, mes, profissionalId })
       .then((l) => {
-        if (id === seqDias.current) setDiasLivres(new Set(l));
+        if (id !== seqDias.current) return;
+        if (l.length > 0) autoAvancar.current = false;
+        // mês sem vagas (ex.: fim do mês): vai direto ao próximo, para ninguém ficar diante de um calendário todo cinza
+        if (l.length === 0 && autoAvancar.current && (ano < anoMax || (ano === anoMax && mes < mesMax))) {
+          if (mes === 12) {
+            setAno(ano + 1);
+            setMes(1);
+          } else setMes(mes + 1);
+          return;
+        }
+        setDiasLivres(new Set(l));
       })
       .catch(() => {
         if (id === seqDias.current) {
@@ -109,6 +120,7 @@ export function SeletorHorario({ hoje, maxData, profissionalId, data, hora, onCh
           setErro("Não foi possível carregar a agenda. Tente de novo em instantes.");
         }
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ano, mes, profissionalId, chave, buscarDias]);
 
   // horários do dia escolhido
@@ -144,6 +156,7 @@ export function SeletorHorario({ hoje, maxData, profissionalId, data, hora, onCh
   const podeAvancar = ano < anoMax || (ano === anoMax && mes < mesMax);
 
   function mover(delta: number) {
+    autoAvancar.current = false;
     let m = mes + delta;
     let a = ano;
     if (m < 1) {
@@ -179,6 +192,11 @@ export function SeletorHorario({ hoje, maxData, profissionalId, data, hora, onCh
           </div>
         </div>
 
+        {diasLivres === null ? (
+          <p className="mb-2 text-sm font-medium text-suave" role="status">
+            Carregando a agenda…
+          </p>
+        ) : null}
         <div role="grid" aria-label={`Dias de ${nomeMes(mes - 1)} de ${ano}`} className="grid grid-cols-7 gap-y-1.5 text-center">
           {SEMANA.map(([l, n], i) => (
             <span key={i} role="columnheader" aria-label={n} className="pb-1 text-xs font-semibold text-suave">
@@ -204,7 +222,7 @@ export function SeletorHorario({ hoje, maxData, profissionalId, data, hora, onCh
                   // no celular, leva a pessoa até os horários
                   requestAnimationFrame(() => blocoHoras.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
                 }}
-                className={`tabular mx-auto grid h-11 w-11 place-items-center rounded-full text-[0.95rem] transition ${
+                className={`tabular mx-auto grid h-11 w-11 touch-manipulation place-items-center rounded-full text-[0.95rem] transition ${
                   sel
                     ? "bg-framboesa font-bold text-white shadow-suave"
                     : livre
@@ -217,7 +235,6 @@ export function SeletorHorario({ hoje, maxData, profissionalId, data, hora, onCh
             );
           })}
         </div>
-        {diasLivres === null ? <p className="mt-3 text-sm text-suave">Carregando agenda…</p> : null}
         {diasLivres && diasLivres.size === 0 && !erro ? (
           <p className="mt-3 text-sm text-suave">Sem horários livres neste mês. Veja o mês seguinte.</p>
         ) : null}

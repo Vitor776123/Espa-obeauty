@@ -11,7 +11,7 @@ import { pixPendente } from "@/lib/pagamentos";
 import { mpAtivo } from "@/lib/mercadopago";
 import { agoraSP, dataPorExtenso, formatBRL, formatDuracao, somarDias } from "@/lib/tempo";
 import { ROTULO_TAMANHO } from "@/lib/tipos";
-import { AcoesCliente, AvisoLembrete, PixAutomatico, PixManual } from "@/app/reserva/[token]/partes";
+import { AcoesCliente, AvisoLembrete, ComprovanteWhatsApp, PixAutomatico, PixManual } from "@/app/reserva/[token]/partes";
 
 export const metadata: Metadata = {
   title: "Sua reserva",
@@ -33,6 +33,11 @@ async function Conteudo({ params }: { params: Promise<{ token: string }> }) {
     : null;
 
   const hoje = agoraSP().data;
+  const zapComprovante = zap
+    ? `https://wa.me/55${zap}?text=${encodeURIComponent(
+        `Olá! Segue o comprovante do PIX da minha reserva: ${ag.servico.nome}, ${dataPorExtenso(ag.data)} às ${ag.inicio}. Nome: ${ag.cliente.nome}.`,
+      )}`
+    : null;
   const cobranca = calcularCobranca(ag.valor_total, ag.tipo_pagamento, cfg.sinal_percentual);
   const aguardando = ag.status === "aguardando_pagamento";
   const ativa = ["aguardando_pagamento", "pendente", "confirmado"].includes(ag.status);
@@ -67,13 +72,22 @@ async function Conteudo({ params }: { params: Promise<{ token: string }> }) {
         {aguardando && pix ? (
           <PixAutomatico token={token} copiaECola={pix.copiaECola} qrBase64={pix.qrBase64} valor={pix.valor} expiraEm={pix.expiraEm} />
         ) : null}
+        {ag.status === "pendente" && zapComprovante ? (
+          <div className="rounded-2xl border border-ok/30 bg-ok/10 p-5">
+            <p className="font-semibold">Ainda não enviou o comprovante?</p>
+            <p className="mt-1 text-sm text-suave">Mande pelo WhatsApp para a Eliana confirmar seu horário mais rápido.</p>
+            <div className="mt-4">
+              <ComprovanteWhatsApp link={zapComprovante} />
+            </div>
+          </div>
+        ) : null}
         {aguardando && !mpAtivo() ? (
           <PixManual
             token={token}
             chave={cfg.chave_pix}
             favorecido={cfg.pix_favorecido}
             valor={cobranca}
-            zapLink={zapLink}
+            zapLink={zapComprovante}
             expiraEm={ag.expira_em}
           />
         ) : null}

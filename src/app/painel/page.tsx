@@ -6,6 +6,7 @@ import { calcularMetricas, escopoDe, listarAgendamentos, proximosDias } from "@/
 import { expirarVencidas } from "@/lib/reservas";
 import { dataPorExtenso, formatBRL, hojeSP, nomeDiaCurto, diaDaSemana, somarDias } from "@/lib/tempo";
 import { CartaoAgendamento } from "@/app/painel/cartao-agendamento";
+import { AvisoAtivar } from "@/app/painel/aviso-ativar";
 import { Indicador, Titulo, Vazio, EsqueletoPainel } from "@/app/painel/ui";
 
 export const metadata = { title: "Hoje" };
@@ -30,6 +31,7 @@ async function Hoje() {
 
   return (
     <div className="mx-auto max-w-6xl">
+      <AvisoAtivar chavePublica={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null} />
       <Titulo
         titulo={`Olá, ${primeiroNome}.`}
         descricao={`Hoje é ${dataPorExtenso(hoje)}. ${
