@@ -1,0 +1,428 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Espaço Beauty — sistema visual
+   Ideia: o camarim. Espelho em arco, lâmpadas âmbar, ameixa e pérola.
+------------------------------------------------------------------- */
+
+@theme {
+  --color-perola: #f8eeea;
+  --color-perola-2: #f0e1dd;
+  --color-blush: #f1d5d6;
+  --color-cha: #e9c7c9;
+  --color-cha-claro: #f6e6e6;
+  --color-ameixa: #3b1526;
+  --color-ameixa-2: #54213a;
+  --color-framboesa: #a8325a;
+  --color-framboesa-2: #8a2548;
+  --color-ambar: #f2b66d;
+  --color-ambar-2: #e89b3c;
+  --color-suave: #5e434c; /* texto secundário: ~8:1 sobre pérola */
+  --color-linha: #e6d6d5;
+  --color-ok: #2f7a57;
+  --color-alerta: #a0560f;
+  --color-erro: #b3261e;
+
+  --font-display: "Bodoni Moda Variable", "Bodoni 72", Didot, "Times New Roman", serif;
+  --font-sans: "Hanken Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --shadow-suave: 0 1px 2px rgb(59 21 38 / 0.06), 0 12px 32px -12px rgb(59 21 38 / 0.18);
+  --shadow-camarim: 0 30px 60px -28px rgb(59 21 38 / 0.55);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-perola);
+  color: var(--color-ameixa);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-cha);
+  color: var(--color-ameixa);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-framboesa);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .no-escuro :focus-visible {
+    outline-color: var(--color-ambar);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- Componentes reutilizáveis ---------- */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0 1.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.975rem;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease,
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-principal {
+    background: var(--color-framboesa);
+    color: #fff;
+    box-shadow: 0 10px 24px -12px rgb(168 50 90 / 0.8);
+  }
+  .btn-principal:hover:not(:disabled) {
+    background: var(--color-framboesa-2);
+  }
+  .btn-ambar {
+    background: var(--color-ambar);
+    color: var(--color-ameixa);
+    box-shadow: 0 10px 26px -12px rgb(242 182 109 / 0.9);
+  }
+  .btn-ambar:hover:not(:disabled) {
+    background: #f7c58a;
+  }
+  .btn-claro {
+    border: 1.5px solid rgb(250 245 243 / 0.65);
+    color: var(--color-perola);
+    background: transparent;
+  }
+  .btn-claro:hover:not(:disabled) {
+    background: var(--color-perola);
+    color: var(--color-ameixa);
+  }
+  .btn-quieto-claro {
+    color: var(--color-perola);
+    background: transparent;
+  }
+  .btn-quieto-claro:hover:not(:disabled) {
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  .hero-escuro {
+    background:
+      radial-gradient(ellipse 60% 85% at 78% 45%, #702a4b 0%, #3b1526 62%),
+      #3b1526;
+  }
+
+  .btn-escuro {
+    background: var(--color-ameixa);
+    color: var(--color-perola);
+  }
+  .btn-escuro:hover:not(:disabled) {
+    background: var(--color-ameixa-2);
+  }
+  .btn-contorno {
+    border: 1.5px solid var(--color-ameixa);
+    color: var(--color-ameixa);
+    background: transparent;
+  }
+  .btn-contorno:hover:not(:disabled) {
+    background: var(--color-ameixa);
+    color: var(--color-perola);
+  }
+  .btn-quieto {
+    color: var(--color-ameixa);
+    background: transparent;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+  }
+  .btn-quieto:hover:not(:disabled) {
+    background: var(--color-cha-claro);
+  }
+  .btn-perigo {
+    border: 1.5px solid var(--color-erro);
+    color: var(--color-erro);
+    background: transparent;
+  }
+  .btn-perigo:hover:not(:disabled) {
+    background: var(--color-erro);
+    color: #fff;
+  }
+  .btn-pequeno {
+    min-height: 2.25rem;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+  }
+
+  .campo {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 1rem;
+    background: #fff;
+    border: 1.5px solid var(--color-linha);
+    border-radius: 0.875rem;
+    color: var(--color-ameixa);
+    font: inherit;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .campo::placeholder {
+    color: #a58f96;
+  }
+  .campo:hover {
+    border-color: #d6bcc0;
+  }
+  .campo:focus {
+    outline: none;
+    border-color: var(--color-framboesa);
+    box-shadow: 0 0 0 4px rgb(168 50 90 / 0.14);
+  }
+  textarea.campo {
+    min-height: 5.5rem;
+    resize: vertical;
+  }
+
+  .rotulo {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-ameixa);
+  }
+  .ajuda {
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+    color: var(--color-suave);
+  }
+
+  .cartao {
+    background: #fff;
+    border: 1px solid var(--color-linha);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-suave);
+  }
+
+  .selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    background: var(--color-cha-claro);
+    color: var(--color-ameixa);
+  }
+  .selo-ok {
+    background: #e3f2ea;
+    color: #1f5a3f;
+  }
+  .selo-alerta {
+    background: #fbeed9;
+    color: #7a410a;
+  }
+  .selo-erro {
+    background: #fbe3e1;
+    color: #8c1d17;
+  }
+  .selo-neutro {
+    background: #eee7e6;
+    color: #5b4650;
+  }
+
+  /* Moldura em arco: o "espelho" do camarim */
+  .arco {
+    border-radius: 50% 50% 0 0 / 34% 34% 0 0;
+  }
+  .arco-suave {
+    border-radius: 50% 50% 1rem 1rem / 28% 28% 1rem 1rem;
+  }
+
+  /* Lâmpada de camarim */
+  .lampada {
+    position: relative;
+    width: var(--d, 14px);
+    height: var(--d, 14px);
+    border-radius: 999px;
+    background: radial-gradient(circle at 35% 30%, #fff6e5 0%, var(--color-ambar) 45%, var(--color-ambar-2) 100%);
+    box-shadow:
+      0 0 0 2px rgb(255 255 255 / 0.55),
+      0 0 14px 3px rgb(242 182 109 / 0.75),
+      0 0 34px 8px rgb(242 182 109 / 0.35);
+  }
+  .lampada-apagada {
+    background: radial-gradient(circle at 35% 30%, #fff 0%, #ead9d6 100%);
+    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.6);
+  }
+
+  .container-site {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .container-site {
+      padding-inline: 2rem;
+    }
+  }
+
+  .titulo-secao {
+    font-size: clamp(2rem, 4.2vw, 3.1rem);
+  }
+}
+
+/* ---------- Movimento: uma única cena orquestrada (as lâmpadas acendem) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes acender {
+    0% {
+      opacity: 0.15;
+      filter: saturate(0.2) brightness(0.9);
+      transform: scale(0.8);
+    }
+    60% {
+      transform: scale(1.12);
+    }
+    100% {
+      opacity: 1;
+      filter: none;
+      transform: scale(1);
+    }
+  }
+  .acendendo {
+    animation: acender 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 70ms + 250ms);
+  }
+
+  @keyframes subir-suave {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .entrada {
+    animation: subir-suave 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .entrada-2 {
+    animation-delay: 0.12s;
+  }
+  .entrada-3 {
+    animation-delay: 0.24s;
+  }
+
+  @keyframes brilho {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 0.95;
+    }
+  }
+  .respirando {
+    animation: brilho 5s ease-in-out infinite;
+  }
+}
+
+/* ---------- <dialog> como gaveta ---------- */
+dialog.gaveta {
+  position: fixed;
+  inset: auto 0 0 0;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  max-height: min(94dvh, 100%);
+  padding: 0;
+  border: 0;
+  background: var(--color-perola);
+  color: var(--color-ameixa);
+  border-radius: 1.5rem 1.5rem 0 0;
+  box-shadow: 0 -20px 60px -20px rgb(59 21 38 / 0.5);
+  overflow: hidden;
+}
+dialog.gaveta::backdrop {
+  background: rgb(36 12 24 / 0.55);
+  backdrop-filter: blur(3px);
+}
+@media (min-width: 768px) {
+  dialog.gaveta {
+    inset: 0;
+    margin: auto;
+    width: min(46rem, calc(100% - 3rem));
+    max-height: min(90dvh, 52rem);
+    border-radius: 1.5rem;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  dialog.gaveta[open] {
+    animation: subir-suave 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+/* Esconde barra de rolagem horizontal onde faz sentido */
+.sem-barra {
+  scrollbar-width: none;
+}
+.sem-barra::-webkit-scrollbar {
+  display: none;
+}
+
+/* Números alinhados em tabelas e horários */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
