@@ -295,7 +295,7 @@ export function ChatAgendamento(props: Props) {
     const v = s?.variacoes.find((x) => x.id === dados.current.variacaoId);
     return v?.duracao ?? s?.duracao ?? 0;
   };
-  const etapaDoServico = (): Etapa => (categorias.length > 1 ? "categoria" : "servico");
+  const etapaDoServico = (): Etapa => "servico";
 
   /* ----- mensagens ----- */
   function adicionar(m: Omit<Msg, "id" | "hora">) {
@@ -465,39 +465,26 @@ export function ChatAgendamento(props: Props) {
 
     switch (etapa) {
       case "categoria": {
-        if (categorias.length <= 1) {
-          D.categoria = categorias[0] ?? null;
-          return perguntar("servico");
-        }
-        if (!(await falar("categoria", { texto: "Qual deles você quer agendar? Me diz primeiro a categoria 👇" }))) return;
-        mostrar("categoria", [
-          { layout: "lista", opcoes: categorias.map((c) => ({ id: c, rotulo: `${emojiCategoria(c)} ${c}` })) },
-          { layout: "lista", opcoes: [{ id: "agora-nao", rotulo: "Agora não", tom: "neutro" }] },
-        ]);
-        return;
+        // sem categoria: a assistente já mostra todos os serviços de uma vez
+        D.categoria = null;
+        return perguntar("servico");
       }
 
       case "servico": {
-        const lista = servicos.filter((s) => !D.categoria || s.categoria === D.categoria);
-        const pergunta = categorias.length > 1 ? "Perfeito! Qual serviço você quer? 👇" : "Qual serviço você quer agendar? 💖";
-        if (!(await falar("servico", { texto: pergunta }))) return;
+        if (!(await falar("servico", { texto: "Qual serviço você quer agendar? 💖 Estes são todos os que a Eliana faz 👇" }))) return;
         mostrar("servico", [
-          {
-            layout: "lista",
-            opcoes: lista.map((s) => ({
-              id: s.id,
-              rotulo: `${emojiServico(s.nome, s.categoria)} ${s.nome}`,
-              detalhe: detalheServico(s),
-            })),
-          },
-          {
-            layout: "lista",
-            opcoes: [
-              categorias.length > 1
-                ? { id: "voltar", rotulo: "↩️ Outra categoria", tom: "neutro" }
-                : { id: "agora-nao", rotulo: "Agora não", tom: "neutro" },
-            ],
-          },
+          ...categorias.map((c) => ({
+            titulo: `${emojiCategoria(c)} ${c}`,
+            layout: "lista" as const,
+            opcoes: servicos
+              .filter((s) => s.categoria === c)
+              .map((s) => ({
+                id: s.id,
+                rotulo: `${emojiServico(s.nome, s.categoria)} ${s.nome}`,
+                detalhe: detalheServico(s),
+              })),
+          })),
+          { layout: "lista" as const, opcoes: [{ id: "agora-nao", rotulo: "Agora não", tom: "neutro" as const }] },
         ]);
         return;
       }
@@ -696,7 +683,6 @@ export function ChatAgendamento(props: Props) {
   function voltarDe(etapa: Etapa) {
     const S = servicoAtual();
     const antesDoTamanho = etapaDoServico();
-    if (etapa === "servico") return voltarPara("categoria");
     if (etapa === "tamanho") return voltarPara(antesDoTamanho);
     if (etapa === "profissional") return voltarPara(S?.temTamanho ? "tamanho" : antesDoTamanho);
     if (etapa === "dia") return voltarPara(profsDo(S).length > 1 ? "profissional" : S?.temTamanho ? "tamanho" : antesDoTamanho);
