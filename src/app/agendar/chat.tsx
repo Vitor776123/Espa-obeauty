@@ -27,7 +27,13 @@ import { calcularCobranca } from "@/lib/cobranca";
 import { dataPorExtenso, formatBRL, formatDuracao, formatTelefone, FUSO, soDigitos } from "@/lib/tempo";
 import { ROTULO_TAMANHO } from "@/lib/tipos";
 
-type Props = DadosChat & { slugInicial: string | null };
+type Props = DadosChat & {
+  slugInicial: string | null;
+  /** dentro da tela inicial: ocupa o espaço do slide e volta pelo histórico */
+  embutido?: boolean;
+  aoVoltar?: () => void;
+  aoVerServicos?: () => void;
+};
 
 /** Cada mensagem guarda a etapa que a gerou: é assim que "voltar" sabe até onde apagar a conversa. */
 type Etapa =
@@ -143,7 +149,7 @@ function IconeVisto() {
 }
 
 /* ---------- partes visuais ---------- */
-function Balao({ m }: { m: Msg }) {
+function Balao({ m, aoVerServicos }: { m: Msg; aoVerServicos?: () => void }) {
   const meu = m.de === "eu";
   return (
     <div data-balao className={`balao-entra flex ${meu ? "justify-end" : "justify-start"}`}>
@@ -169,12 +175,22 @@ function Balao({ m }: { m: Msg }) {
           </dl>
         ) : null}
         {m.link ? (
-          <Link
-            href={m.link.href}
-            className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-framboesa/30 bg-white px-4 text-sm font-semibold text-framboesa hover:border-framboesa"
-          >
-            {m.link.rotulo}
-          </Link>
+          aoVerServicos && m.link.href === "/#servicos" ? (
+            <button
+              type="button"
+              onClick={aoVerServicos}
+              className="mt-2 flex min-h-11 w-full items-center justify-center rounded-xl border border-framboesa/30 bg-white px-4 text-sm font-semibold text-framboesa hover:border-framboesa"
+            >
+              {m.link.rotulo}
+            </button>
+          ) : (
+            <Link
+              href={m.link.href}
+              className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-framboesa/30 bg-white px-4 text-sm font-semibold text-framboesa hover:border-framboesa"
+            >
+              {m.link.rotulo}
+            </Link>
+          )
         ) : null}
         <span className={`mt-0.5 flex items-center justify-end gap-1 text-[0.68rem] ${meu ? "text-white/80" : "text-suave"}`}>
           {m.hora}
@@ -242,7 +258,7 @@ function Opcoes({ bandeja, onEscolher }: { bandeja: Bandeja; onEscolher: (o: Opc
 
 /* ---------- o chat ---------- */
 export function ChatAgendamento(props: Props) {
-  const { servicos, profissionais, hoje, maxData, sinalPct, holdMinutos, exigeEmail, whatsapp } = props;
+  const { servicos, profissionais, hoje, maxData, sinalPct, holdMinutos, exigeEmail, whatsapp, embutido, aoVoltar, aoVerServicos } = props;
   const router = useRouter();
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -944,10 +960,11 @@ export function ChatAgendamento(props: Props) {
   return (
     <section
       aria-label="Agendamento por conversa"
-      style={viewport ? { height: viewport.h, top: viewport.top, bottom: "auto" } : undefined}
-      className={CLASSE_TELA}
+      style={!embutido && viewport ? { height: viewport.h, top: viewport.top, bottom: "auto" } : undefined}
+      className={embutido ? CLASSE_EMBUTIDA : CLASSE_TELA}
     >
       <CabecalhoChat
+        aoVoltar={aoVoltar}
         status={digitando ? "digitando…" : encerrada ? "conversa encerrada" : "assistente virtual · online"}
         aoRecomecar={() => void iniciar(false)}
       />
@@ -956,7 +973,7 @@ export function ChatAgendamento(props: Props) {
         <p className="mx-auto mb-3 w-fit rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-suave shadow-sm">Hoje</p>
         <div role="log" aria-live="polite" aria-relevant="additions" className="flex flex-col gap-1.5">
           {msgs.map((m) => (
-            <Balao key={m.id} m={m} />
+            <Balao key={m.id} m={m} aoVerServicos={aoVerServicos} />
           ))}
           {digitando ? <Digitando /> : null}
         </div>
@@ -1002,15 +1019,23 @@ export function ChatAgendamento(props: Props) {
 }
 
 /* ---------- página: abre na hora e carrega os dados em seguida ---------- */
+/** Dentro do slide da tela inicial: preenche o espaço que o slide dá. */
+const CLASSE_EMBUTIDA = "absolute inset-0 flex flex-col bg-perola-2";
 const CLASSE_TELA =
   "fixed inset-0 z-50 flex flex-col bg-perola-2 md:static md:z-auto md:mx-auto md:h-[min(46rem,calc(100dvh-9rem))] md:w-full md:max-w-md md:overflow-hidden md:rounded-[2rem] md:border md:border-linha md:shadow-camarim";
 
-function CabecalhoChat({ status, aoRecomecar }: { status: string; aoRecomecar?: () => void }) {
+function CabecalhoChat({ status, aoRecomecar, aoVoltar }: { status: string; aoRecomecar?: () => void; aoVoltar?: () => void }) {
   return (
     <header className="no-escuro flex items-center gap-2.5 bg-ameixa px-2 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] text-perola">
-      <Link href="/" aria-label="Voltar para o site" className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 md:hidden">
-        <IconeSeta />
-      </Link>
+      {aoVoltar ? (
+        <button type="button" onClick={aoVoltar} aria-label="Voltar" className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10">
+          <IconeSeta />
+        </button>
+      ) : (
+        <Link href="/" aria-label="Voltar para o site" className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 md:hidden">
+          <IconeSeta />
+        </Link>
+      )}
       <span
         aria-hidden
         className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-ambar to-ambar-2 font-display text-lg font-medium italic text-ameixa max-md:-ml-1 md:ml-2"
@@ -1033,10 +1058,10 @@ function CabecalhoChat({ status, aoRecomecar }: { status: string; aoRecomecar?: 
 }
 
 /** Tela do chat enquanto os serviços chegam: já aparece o "digitando…", como num atendimento de verdade. */
-function ChatCarregando({ erro, aoTentar }: { erro: boolean; aoTentar: () => void }) {
+export function ChatCarregando({ erro, aoTentar, embutido, aoVoltar }: { erro: boolean; aoTentar: () => void; embutido?: boolean; aoVoltar?: () => void }) {
   return (
-    <section aria-label="Agendamento por conversa" className={CLASSE_TELA}>
-      <CabecalhoChat status={erro ? "sem conexão" : "digitando…"} />
+    <section aria-label="Agendamento por conversa" className={embutido ? CLASSE_EMBUTIDA : CLASSE_TELA}>
+      <CabecalhoChat aoVoltar={aoVoltar} status={erro ? "sem conexão" : "digitando…"} />
       <div className="chat-fundo min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <p className="mx-auto mb-3 w-fit rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-suave shadow-sm">Hoje</p>
         {erro ? (

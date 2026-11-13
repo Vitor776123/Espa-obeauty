@@ -480,3 +480,34 @@ dialog.gaveta::backdrop {
     animation-delay: 0.3s;
   }
 }
+
+/* ---------- slides da tela inicial ---------- */
+.tela {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-perola);
+  will-change: transform;
+  transition: transform 0.42s cubic-bezier(0.22, 0.8, 0.24, 1), filter 0.42s ease;
+}
+.tela-entra {
+  animation: tela-entra 0.42s cubic-bezier(0.22, 0.8, 0.24, 1) both;
+  box-shadow: -18px 0 40px -20px rgb(59 21 38 / 0.35);
+}
+.tela-sai {
+  animation: tela-sai 0.42s cubic-bezier(0.22, 0.8, 0.24, 1) both;
+  pointer-events: none;
+  box-shadow: -18px 0 40px -20px rgb(59 21 38 / 0.35);
+}
+.tela-coberta {
+  transform: translate3d(-22%, 0, 0);
+  filter: brightness(0.82);
+}
+@keyframes tela-entra {
+  from { transform: translate3d(100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+@keyframes tela-sai {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(100%, 0, 0); }
+}
