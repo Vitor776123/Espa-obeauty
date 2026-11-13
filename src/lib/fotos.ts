@@ -20,5 +20,5 @@ const POR_SLUG = new Set([
 ]);
 
 export function fotoDoServico(slug: string, enviada: string | null): string | null {
-  return POR_SLUG.has(slug) ? `/fotos/${slug}.webp` : enviada;
+  return POR_SLUG.has(slug) ? `/fotos/v2/${slug}.webp` : enviada;
 }
