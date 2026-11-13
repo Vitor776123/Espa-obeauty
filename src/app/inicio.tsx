@@ -154,7 +154,7 @@ function TelaInicial({ aoAgendar, aoServicos, aoSobre }: { aoAgendar: () => void
           <IconeCalendario />
           Agendar horário
         </button>
-        <button type="button" onClick={aoServicos} className="btn btn-claro !min-h-16 w-full justify-center gap-3 !rounded-2xl !border-2 !text-lg font-semibold">
+        <button type="button" onClick={aoServicos} className="btn !min-h-16 w-full justify-center gap-3 !rounded-2xl bg-perola !text-lg font-semibold text-ameixa shadow-suave hover:bg-white">
           <IconeLista />
           Ver serviços
         </button>
