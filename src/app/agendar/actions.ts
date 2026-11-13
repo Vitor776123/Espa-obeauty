@@ -6,7 +6,9 @@ import { agendamentoPorId, calcularDisponibilidade, expirarVencidas, reservar, r
 import { criarCobrancaPix } from "@/lib/pagamentos";
 import { mpAtivo } from "@/lib/mercadopago";
 import { agoraSP, dataCurta, dataValida, formatBRL, somarDias } from "@/lib/tempo";
-import { getConfig, listarProfissionais, listarServicos } from "@/lib/dados";
+import { getConfig, listarHorarios, listarProfissionais, listarServicos } from "@/lib/dados";
+import { fotoDoServico } from "@/lib/fotos";
+import { resumoHorario } from "@/lib/horario-texto";
 import type { Tamanho } from "@/lib/tipos";
 import { avisarEquipe, seguro } from "@/lib/push";
 
@@ -109,6 +111,9 @@ export type ServicoChat = {
   nome: string;
   categoria: string;
   descricao: string;
+  descricaoLonga: string;
+  foto: string | null;
+  passos: string[];
   temTamanho: boolean;
   preco: number;
   duracao: number;
@@ -125,11 +130,14 @@ export type DadosChat = {
   holdMinutos: number;
   exigeEmail: boolean;
   whatsapp: string | null;
+  instagram: string | null;
+  endereco: string | null;
+  horarios: string[];
 };
 
 /** Tudo o que o chat precisa para conversar. Vem por aqui para a página abrir na hora e o chat carregar em seguida. */
 export async function carregarDadosChat(): Promise<DadosChat> {
-  const [servicos, profs, cfg] = await Promise.all([listarServicos(), listarProfissionais(), getConfig()]);
+  const [servicos, profs, cfg, horarios] = await Promise.all([listarServicos(), listarProfissionais(), getConfig(), listarHorarios()]);
   const hoje = agoraSP().data;
   return {
     servicos: servicos
@@ -142,6 +150,9 @@ export async function carregarDadosChat(): Promise<DadosChat> {
           nome: s.nome,
           categoria: s.categoria,
           descricao: s.descricao ?? "",
+          descricaoLonga: s.descricao_longa ?? "",
+          foto: fotoDoServico(s.slug, s.foto_url),
+          passos: s.passos,
           temTamanho: s.tem_tamanho,
           preco: Math.min(...precos),
           duracao: s.duracao_min,
@@ -156,5 +167,8 @@ export async function carregarDadosChat(): Promise<DadosChat> {
     holdMinutos: cfg.hold_minutos,
     exigeEmail: mpAtivo(),
     whatsapp: cfg.whatsapp,
+    instagram: cfg.instagram,
+    endereco: cfg.endereco,
+    horarios: resumoHorario(horarios),
   };
 }
