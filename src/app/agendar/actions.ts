@@ -5,7 +5,9 @@ import { db } from "@/lib/supabase/admin";
 import { agendamentoPorId, calcularDisponibilidade, expirarVencidas, reservar, resolverOferta } from "@/lib/reservas";
 import { criarCobrancaPix } from "@/lib/pagamentos";
 import { mpAtivo } from "@/lib/mercadopago";
-import { dataCurta, dataValida, formatBRL } from "@/lib/tempo";
+import { agoraSP, dataCurta, dataValida, formatBRL, somarDias } from "@/lib/tempo";
+import { getConfig, listarProfissionais, listarServicos } from "@/lib/dados";
+import type { Tamanho } from "@/lib/tipos";
 import { avisarEquipe, seguro } from "@/lib/push";
 
 const id = z.uuid();
@@ -98,4 +100,61 @@ export async function criarReservaPublica(entrada: z.input<typeof reservaSchema>
     }),
   );
   return { ok: true, token: r.agendamento.token_gerenciar };
+}
+
+
+export type ServicoChat = {
+  id: string;
+  slug: string;
+  nome: string;
+  categoria: string;
+  descricao: string;
+  temTamanho: boolean;
+  preco: number;
+  duracao: number;
+  variacoes: { id: string; tamanho: Tamanho; preco: number; duracao: number }[];
+  profissionais: string[];
+};
+
+export type DadosChat = {
+  servicos: ServicoChat[];
+  profissionais: { id: string; nome: string }[];
+  hoje: string;
+  maxData: string;
+  sinalPct: number;
+  holdMinutos: number;
+  exigeEmail: boolean;
+  whatsapp: string | null;
+};
+
+/** Tudo o que o chat precisa para conversar. Vem por aqui para a página abrir na hora e o chat carregar em seguida. */
+export async function carregarDadosChat(): Promise<DadosChat> {
+  const [servicos, profs, cfg] = await Promise.all([listarServicos(), listarProfissionais(), getConfig()]);
+  const hoje = agoraSP().data;
+  return {
+    servicos: servicos
+      .filter((s) => (s.tem_tamanho ? s.variacoes.length > 0 : s.duracao_min > 0))
+      .map((s) => {
+        const precos = s.tem_tamanho ? s.variacoes.map((v) => v.preco) : [s.preco_base];
+        return {
+          id: s.id,
+          slug: s.slug,
+          nome: s.nome,
+          categoria: s.categoria,
+          descricao: s.descricao ?? "",
+          temTamanho: s.tem_tamanho,
+          preco: Math.min(...precos),
+          duracao: s.duracao_min,
+          variacoes: s.variacoes.map((v) => ({ id: v.id, tamanho: v.tamanho, preco: v.preco, duracao: v.duracao_min })),
+          profissionais: s.profissionais,
+        };
+      }),
+    profissionais: profs.map((p) => ({ id: p.id, nome: p.nome })),
+    hoje,
+    maxData: somarDias(hoje, cfg.janela_dias),
+    sinalPct: cfg.sinal_percentual,
+    holdMinutos: cfg.hold_minutos,
+    exigeEmail: mpAtivo(),
+    whatsapp: cfg.whatsapp,
+  };
 }

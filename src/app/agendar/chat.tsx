@@ -4,7 +4,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { buscarDiasLivres, buscarHorasLivres, criarReservaPublica } from "@/app/agendar/actions";
+import {
+  buscarDiasLivres,
+  buscarHorasLivres,
+  carregarDadosChat,
+  criarReservaPublica,
+  type DadosChat,
+  type ServicoChat,
+} from "@/app/agendar/actions";
 import {
   agruparHoras,
   atrasoDigitando,
@@ -18,32 +25,9 @@ import {
 } from "@/lib/chat-agendamento";
 import { calcularCobranca } from "@/lib/cobranca";
 import { dataPorExtenso, formatBRL, formatDuracao, formatTelefone, FUSO, soDigitos } from "@/lib/tempo";
-import { ROTULO_TAMANHO, type Tamanho } from "@/lib/tipos";
+import { ROTULO_TAMANHO } from "@/lib/tipos";
 
-export type ServicoChat = {
-  id: string;
-  slug: string;
-  nome: string;
-  categoria: string;
-  descricao: string;
-  temTamanho: boolean;
-  preco: number;
-  duracao: number;
-  variacoes: { id: string; tamanho: Tamanho; preco: number; duracao: number }[];
-  profissionais: string[];
-};
-
-type Props = {
-  servicos: ServicoChat[];
-  profissionais: { id: string; nome: string }[];
-  hoje: string;
-  maxData: string;
-  sinalPct: number;
-  holdMinutos: number;
-  exigeEmail: boolean;
-  slugInicial: string | null;
-  whatsapp: string | null;
-};
+type Props = DadosChat & { slugInicial: string | null };
 
 /** Cada mensagem guarda a etapa que a gerou: é assim que "voltar" sabe até onde apagar a conversa. */
 type Etapa =
@@ -523,19 +507,21 @@ export function ChatAgendamento(props: Props) {
 
       case "dia": {
         const emoji = S ? emojiServico(S.nome, S.categoria) : "💖";
-        if (!(await falar("dia", { texto: `Show! ${emoji} Qual dia fica bom pra você? 📅` }))) return;
         dias.current = { lista: [], mostrando: TAMANHO_PAGINA_DIAS, ano: anoHoje, mes: mesHoje, fim: false };
+        // a agenda é consultada enquanto a assistente "digita", sem esperar uma coisa para começar a outra
+        const busca = carregarDias(TAMANHO_PAGINA_DIAS + 1).then(
+          () => false,
+          () => true,
+        );
+        if (!(await falar("dia", { texto: `Show! ${emoji} Qual dia fica bom pra você? 📅` }))) return;
         setDigitando(true);
-        try {
-          await carregarDias(TAMANHO_PAGINA_DIAS + 1);
-        } catch {
-          if (!vivo()) return;
-          setDigitando(false);
+        const falhou = await busca;
+        if (!vivo()) return;
+        setDigitando(false);
+        if (falhou) {
           await erroDeAgenda("dia");
           return;
         }
-        if (!vivo()) return;
-        setDigitando(false);
         await mostrarDias();
         return;
       }
@@ -543,19 +529,20 @@ export function ChatAgendamento(props: Props) {
       case "hora": {
         const data = D.data;
         if (!data) return;
+        const busca = buscarHorasLivres({ servicoId: D.servicoId!, variacaoId: D.variacaoId, profissionalId: D.profId, data }).then(
+          (horas) => ({ horas }),
+          () => null,
+        );
         if (!(await falar("hora", { texto: `Ótimo! 🎉 Para *${cap(dataPorExtenso(data))}* eu tenho estes horários livres 🕐` }))) return;
         setDigitando(true);
-        let horas: string[];
-        try {
-          horas = await buscarHorasLivres({ servicoId: D.servicoId!, variacaoId: D.variacaoId, profissionalId: D.profId, data });
-        } catch {
-          if (!vivo()) return;
-          setDigitando(false);
+        const r = await busca;
+        if (!vivo()) return;
+        setDigitando(false);
+        if (!r) {
           await erroDeAgenda("hora");
           return;
         }
-        if (!vivo()) return;
-        setDigitando(false);
+        const horas = r.horas;
         if (horas.length === 0) {
           if (!(await falar("hora", { texto: "Poxa, esse dia acabou de ficar sem horários 😕 Vamos escolher outro?" }))) return;
           D.data = null;
@@ -958,37 +945,12 @@ export function ChatAgendamento(props: Props) {
     <section
       aria-label="Agendamento por conversa"
       style={viewport ? { height: viewport.h, top: viewport.top, bottom: "auto" } : undefined}
-      className="fixed inset-0 z-50 flex flex-col bg-perola-2 md:static md:z-auto md:mx-auto md:h-[min(46rem,calc(100dvh-9rem))] md:w-full md:max-w-md md:overflow-hidden md:rounded-[2rem] md:border md:border-linha md:shadow-camarim"
+      className={CLASSE_TELA}
     >
-      <header className="no-escuro flex items-center gap-2.5 bg-ameixa px-2 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] text-perola">
-        <Link
-          href="/"
-          aria-label="Voltar para o site"
-          className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 md:hidden"
-        >
-          <IconeSeta />
-        </Link>
-        <span
-          aria-hidden
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-ambar to-ambar-2 font-display text-lg font-medium italic text-ameixa max-md:-ml-1 md:ml-2"
-        >
-          EB
-        </span>
-        <div className="min-w-0 flex-1 leading-tight">
-          <p className="truncate font-semibold">Espaço Beauty</p>
-          <p className="truncate text-xs text-cha" aria-live="polite">
-            {digitando ? "digitando…" : encerrada ? "conversa encerrada" : "assistente virtual · online"}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void iniciar(false)}
-          aria-label="Recomeçar a conversa"
-          className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 md:mr-2"
-        >
-          <IconeRecomecar />
-        </button>
-      </header>
+      <CabecalhoChat
+        status={digitando ? "digitando…" : encerrada ? "conversa encerrada" : "assistente virtual · online"}
+        aoRecomecar={() => void iniciar(false)}
+      />
 
       <div ref={rolagem} className="chat-fundo min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4">
         <p className="mx-auto mb-3 w-fit rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-suave shadow-sm">Hoje</p>
@@ -1037,4 +999,97 @@ export function ChatAgendamento(props: Props) {
       </form>
     </section>
   );
+}
+
+/* ---------- página: abre na hora e carrega os dados em seguida ---------- */
+const CLASSE_TELA =
+  "fixed inset-0 z-50 flex flex-col bg-perola-2 md:static md:z-auto md:mx-auto md:h-[min(46rem,calc(100dvh-9rem))] md:w-full md:max-w-md md:overflow-hidden md:rounded-[2rem] md:border md:border-linha md:shadow-camarim";
+
+function CabecalhoChat({ status, aoRecomecar }: { status: string; aoRecomecar?: () => void }) {
+  return (
+    <header className="no-escuro flex items-center gap-2.5 bg-ameixa px-2 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] text-perola">
+      <Link href="/" aria-label="Voltar para o site" className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 md:hidden">
+        <IconeSeta />
+      </Link>
+      <span
+        aria-hidden
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-ambar to-ambar-2 font-display text-lg font-medium italic text-ameixa max-md:-ml-1 md:ml-2"
+      >
+        EB
+      </span>
+      <div className="min-w-0 flex-1 leading-tight">
+        <p className="truncate font-semibold">Espaço Beauty</p>
+        <p className="truncate text-xs text-cha" aria-live="polite">
+          {status}
+        </p>
+      </div>
+      {aoRecomecar ? (
+        <button type="button" onClick={aoRecomecar} aria-label="Recomeçar a conversa" className="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 md:mr-2">
+          <IconeRecomecar />
+        </button>
+      ) : null}
+    </header>
+  );
+}
+
+/** Tela do chat enquanto os serviços chegam: já aparece o "digitando…", como num atendimento de verdade. */
+function ChatCarregando({ erro, aoTentar }: { erro: boolean; aoTentar: () => void }) {
+  return (
+    <section aria-label="Agendamento por conversa" className={CLASSE_TELA}>
+      <CabecalhoChat status={erro ? "sem conexão" : "digitando…"} />
+      <div className="chat-fundo min-h-0 flex-1 overflow-y-auto px-3 py-4">
+        <p className="mx-auto mb-3 w-fit rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-suave shadow-sm">Hoje</p>
+        {erro ? (
+          <div className="flex flex-col items-start gap-2">
+            <div className="max-w-[86%] rounded-2xl rounded-tl-md bg-white px-3 py-2 text-[0.97rem] leading-snug text-ameixa shadow-sm">
+              Ops 😕 Não consegui abrir o agendamento agora. Confira a sua internet e tente de novo.
+            </div>
+            <button type="button" onClick={aoTentar} className="btn btn-principal">
+              🔄 Tentar de novo
+            </button>
+          </div>
+        ) : (
+          <Digitando />
+        )}
+      </div>
+      <div className="flex items-center gap-2 border-t border-linha bg-perola px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+        <input disabled placeholder="Toque em uma das opções 👆" aria-label="Campo de resposta" className="campo min-h-11 flex-1 rounded-full px-4 py-2 disabled:bg-white/60" />
+        <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-framboesa text-white opacity-40">
+          <IconeEnviar />
+        </span>
+      </div>
+    </section>
+  );
+}
+
+export function ChatAgendamentoPagina() {
+  const [dados, setDados] = useState<DadosChat | null>(null);
+  const [erro, setErro] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
+
+  useEffect(() => {
+    let vivo = true;
+    carregarDadosChat().then(
+      (d) => vivo && setDados(d),
+      () => vivo && setErro(true),
+    );
+    return () => {
+      vivo = false;
+    };
+  }, [tentativa]);
+
+  if (!dados) {
+    return (
+      <ChatCarregando
+        erro={erro}
+        aoTentar={() => {
+          setErro(false);
+          setTentativa((n) => n + 1);
+        }}
+      />
+    );
+  }
+  // o serviço escolhido no menu vem no endereço (?servico=...), lido aqui no navegador
+  const slugInicial = new URLSearchParams(window.location.search).get("servico");
+  return <ChatAgendamento {...dados} slugInicial={slugInicial} />;
 }

@@ -104,7 +104,7 @@ describe("validações", () => {
 describe("atrasoDigitando", () => {
   it("cresce com o texto, tem teto e some com movimento reduzido", () => {
     expect(atrasoDigitando("oi", false)).toBeLessThan(atrasoDigitando("uma mensagem bem mais comprida aqui", false));
-    expect(atrasoDigitando("x".repeat(500), false)).toBe(1100);
+    expect(atrasoDigitando("x".repeat(500), false)).toBe(700);
     expect(atrasoDigitando("oi", true)).toBe(0);
   });
 });
