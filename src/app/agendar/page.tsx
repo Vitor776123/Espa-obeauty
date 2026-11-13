@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { CabecalhoSite } from "@/components/cabecalho";
@@ -6,7 +5,7 @@ import { Marca } from "@/components/marca";
 import { getConfig, listarProfissionais, listarServicos } from "@/lib/dados";
 import { mpAtivo } from "@/lib/mercadopago";
 import { agoraSP, somarDias } from "@/lib/tempo";
-import { Wizard, type ServicoWizard } from "@/app/agendar/wizard";
+import { ChatAgendamento, type ServicoChat } from "@/app/agendar/chat";
 
 export const metadata: Metadata = {
   title: "Agendar horário",
@@ -21,7 +20,7 @@ async function Dados({ searchParams }: { searchParams: Promise<{ servico?: strin
     getConfig(),
   ]);
   const hoje = agoraSP().data;
-  const lista: ServicoWizard[] = servicos
+  const lista: ServicoChat[] = servicos
     .filter((s) => (s.tem_tamanho ? s.variacoes.length > 0 : s.duracao_min > 0))
     .map((s) => {
       const precos = s.tem_tamanho ? s.variacoes.map((v) => v.preco) : [s.preco_base];
@@ -39,7 +38,7 @@ async function Dados({ searchParams }: { searchParams: Promise<{ servico?: strin
       };
     });
   return (
-    <Wizard
+    <ChatAgendamento
       servicos={lista}
       profissionais={profs.map((p) => ({ id: p.id, nome: p.nome }))}
       hoje={hoje}
@@ -48,6 +47,7 @@ async function Dados({ searchParams }: { searchParams: Promise<{ servico?: strin
       holdMinutos={cfg.hold_minutos}
       exigeEmail={mpAtivo()}
       slugInicial={servico ?? null}
+      whatsapp={cfg.whatsapp}
     />
   );
 }
@@ -55,38 +55,25 @@ async function Dados({ searchParams }: { searchParams: Promise<{ servico?: strin
 export default function Page(props: { searchParams: Promise<{ servico?: string }> }) {
   return (
     <>
-      <CabecalhoSite />
-      <main>
-        <div className="container-site flex items-end justify-between gap-4 pt-6 md:pt-10">
-          <div className="pb-2 md:pb-6">
-            <p className="font-display text-3xl sm:text-5xl">Vamos marcar?</p>
-            <p className="mt-2 max-w-sm text-suave">Escolha o serviço e o horário. Leva menos de um minuto.</p>
-          </div>
-          <Image
-            src="/fotos/recorte-tchau.webp"
-            alt="Eliana acenando"
-            width={640}
-            height={726}
-            sizes="(min-width:768px) 12rem, 8rem"
-            className="w-32 flex-none md:w-48"
-          />
+      <div className="hidden md:block">
+        <CabecalhoSite />
+      </div>
+      <main className="md:pb-6">
+        <div className="container-site hidden pb-6 pt-10 text-center md:block">
+          <p className="font-display text-5xl">Vamos marcar?</p>
+          <p className="mx-auto mt-2 max-w-sm text-suave">Converse com a nossa assistente e reserve o seu horário em um minutinho.</p>
         </div>
         <Suspense
           fallback={
-            <div className="container-site py-16" aria-busy>
-              <div className="h-10 w-2/3 animate-pulse rounded bg-cha-claro" />
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-28 animate-pulse rounded-2xl bg-cha-claro" />
-                ))}
-              </div>
+            <div className="fixed inset-0 z-50 grid place-items-center bg-perola-2 md:static md:mx-auto md:h-96 md:max-w-md md:rounded-[2rem]" aria-busy>
+              <p className="animate-pulse text-sm text-suave">Abrindo a conversa… 💖</p>
             </div>
           }
         >
           <Dados searchParams={props.searchParams} />
         </Suspense>
       </main>
-      <footer className="container-site py-10">
+      <footer className="container-site hidden py-10 md:block">
         <Marca />
       </footer>
     </>
