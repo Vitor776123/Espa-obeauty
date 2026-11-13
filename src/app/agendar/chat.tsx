@@ -272,6 +272,7 @@ export function ChatAgendamento(props: Props) {
   const gen = useRef(0); // sobe a cada reinício/volta: cancela falas pendentes
   const seq = useRef(0);
   const dados = useRef<Dados>(dadosVazios());
+  const horasRef = useRef<string[]>([]);
   const dias = useRef<ListaDias>({ lista: [], mostrando: TAMANHO_PAGINA_DIAS, ano: 0, mes: 0, fim: false });
   const rolagem = useRef<HTMLDivElement>(null);
   const fim = useRef<HTMLDivElement>(null);
@@ -416,6 +417,28 @@ export function ChatAgendamento(props: Props) {
     ]);
   }
 
+  /** Mostra só os horários cheios e de meia hora; "Ver todos" abre a lista completa. */
+  function mostrarHoras(todas: boolean) {
+    const completa = horasRef.current;
+    const principais = completa.filter((h) => h.endsWith(":00") || h.endsWith(":30"));
+    const lista = !todas && principais.length >= 4 && principais.length < completa.length ? principais : completa;
+    const temMais = lista.length < completa.length;
+    mostrar("hora", [
+      ...agruparHoras(lista).map((g) => ({
+        titulo: `${g.emoji} ${g.titulo}`,
+        layout: "grade3" as const,
+        opcoes: g.horas.map((h) => ({ id: h, rotulo: h })),
+      })),
+      {
+        layout: "lista",
+        opcoes: [
+          ...(temMais ? [{ id: "todas-horas", rotulo: "🕐 Ver todos os horários", tom: "neutro" as const }] : []),
+          { id: "voltar", rotulo: "📅 Escolher outro dia", tom: "neutro" as const },
+        ],
+      },
+    ]);
+  }
+
   /* ----- perguntas de cada etapa ----- */
   function proximaEtapaDeDados(): Etapa {
     const D = dados.current;
@@ -551,14 +574,8 @@ export function ChatAgendamento(props: Props) {
           D.data = null;
           return perguntar("dia");
         }
-        mostrar("hora", [
-          ...agruparHoras(horas).map((g) => ({
-            titulo: `${g.emoji} ${g.titulo}`,
-            layout: "grade3" as const,
-            opcoes: g.horas.map((h) => ({ id: h, rotulo: h })),
-          })),
-          { layout: "lista", opcoes: [{ id: "voltar", rotulo: "📅 Escolher outro dia", tom: "neutro" }] },
-        ]);
+        horasRef.current = horas;
+        mostrarHoras(false);
         return;
       }
 
@@ -834,6 +851,7 @@ export function ChatAgendamento(props: Props) {
 
     if (op.id === "voltar") return voltarDe(etapa);
     if (op.id === "mais") return maisDatas();
+    if (op.id === "todas-horas") return mostrarHoras(true);
     if (op.id === "tentar" && etapa !== "enviando") return perguntar(etapa === "hora" ? "hora" : "dia");
 
     const fala = etapa === "dia" ? cap(dataPorExtenso(op.id)) : etapa === "hora" ? `Às ${op.rotulo}` : op.rotulo;
