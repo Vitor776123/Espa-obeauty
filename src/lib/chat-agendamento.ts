@@ -78,5 +78,5 @@ export function primeiroNome(nome: string): string {
 /** Quanto tempo o "digitando…" dura, proporcional ao tamanho da mensagem. */
 export function atrasoDigitando(texto: string, reduzirMovimento: boolean): number {
   if (reduzirMovimento) return 0;
-  return Math.min(1100, 450 + texto.length * 12);
+  return Math.min(700, 250 + texto.length * 6);
 }
