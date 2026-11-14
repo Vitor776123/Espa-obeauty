@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import Image from "next/image";
+import { useRef, useState, useTransition } from "react";
 import type { Config } from "@/lib/tipos";
 import { formatTelefone } from "@/lib/tempo";
-import { salvarConfiguracoes } from "@/app/painel/configuracoes/actions";
+import { enviarQrPix, removerQrPix, salvarConfiguracoes } from "@/app/painel/configuracoes/actions";
 
 export function FormularioConfig({ cfg }: { cfg: Config }) {
   const [v, setV] = useState({
@@ -24,6 +25,39 @@ export function FormularioConfig({ cfg }: { cfg: Config }) {
   const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [pendente, iniciar] = useTransition();
+  const [qr, setQr] = useState<string | null>(cfg.qr_pix_url ?? null);
+  const [enviandoQr, setEnviandoQr] = useState(false);
+  const [erroQr, setErroQr] = useState<string | null>(null);
+  const inputQr = useRef<HTMLInputElement>(null);
+
+  async function aoEscolherQr(e: React.ChangeEvent<HTMLInputElement>) {
+    const arq = e.target.files?.[0];
+    e.target.value = "";
+    if (!arq) return;
+    setErroQr(null);
+    setEnviandoQr(true);
+    try {
+      const fd = new FormData();
+      fd.append("qr", arq);
+      const r = await enviarQrPix(fd);
+      if (r.ok) setQr(r.url);
+      else setErroQr(r.erro);
+    } catch {
+      setErroQr("Não foi possível enviar essa imagem. Tente outra.");
+    } finally {
+      setEnviandoQr(false);
+    }
+  }
+
+  async function tirarQr() {
+    setErroQr(null);
+    setEnviandoQr(true);
+    const r = await removerQrPix();
+    setEnviandoQr(false);
+    if (r.ok) setQr(null);
+    else setErroQr(r.erro);
+  }
+
   const set = (k: keyof typeof v, valor: string) => {
     setSalvo(false);
     setV((x) => ({ ...x, [k]: valor }));
@@ -94,6 +128,34 @@ export function FormularioConfig({ cfg }: { cfg: Config }) {
           <div>
             <label htmlFor="c-fav" className="rotulo">Nome do favorecido</label>
             <input id="c-fav" className="campo" value={v.pix_favorecido} onChange={(e) => set("pix_favorecido", e.target.value)} />
+          </div>
+        </div>
+
+        <div>
+          <p className="rotulo">QR Code do PIX</p>
+          <div className="mt-1 flex flex-wrap items-center gap-5">
+            <div className="relative h-32 w-32 overflow-hidden rounded-2xl bg-cha-claro">
+              {qr ? (
+                <Image src={qr} alt="QR Code do PIX" fill sizes="128px" unoptimized className="object-contain" />
+              ) : (
+                <span className="grid h-full place-items-center px-3 text-center text-sm text-suave">Sem QR Code</span>
+              )}
+            </div>
+            <div className="space-y-2">
+              <input ref={inputQr} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={aoEscolherQr} aria-label="Escolher imagem do QR Code" />
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="btn btn-contorno btn-pequeno" onClick={() => inputQr.current?.click()} disabled={enviandoQr}>
+                  {enviandoQr ? "Enviando…" : qr ? "Trocar QR Code" : "Enviar QR Code"}
+                </button>
+                {qr ? (
+                  <button type="button" className="btn btn-quieto btn-pequeno" onClick={tirarQr} disabled={enviandoQr}>
+                    Remover
+                  </button>
+                ) : null}
+              </div>
+              <p className="ajuda">Aparece em “Sobre o salão”, para as clientes pagarem pelo PIX. É salvo na hora, sem precisar clicar em “Salvar configurações”.</p>
+              {erroQr ? <p role="alert" className="text-sm font-medium text-[#8c1d17]">{erroQr}</p> : null}
+            </div>
           </div>
         </div>
       </section>

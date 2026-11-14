@@ -132,6 +132,8 @@ export type DadosChat = {
   whatsapp: string | null;
   instagram: string | null;
   endereco: string | null;
+  qrPix: string | null;
+  pixFavorecido: string | null;
   horarios: string[];
 };
 
@@ -169,6 +171,8 @@ export async function carregarDadosChat(): Promise<DadosChat> {
     whatsapp: cfg.whatsapp,
     instagram: cfg.instagram,
     endereco: cfg.endereco,
+    qrPix: cfg.qr_pix_url,
+    pixFavorecido: cfg.pix_favorecido,
     horarios: resumoHorario(horarios),
   };
 }
