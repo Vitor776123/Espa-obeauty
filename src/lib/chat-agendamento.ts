@@ -75,8 +75,11 @@ export function primeiroNome(nome: string): string {
   return p ? `${p.charAt(0).toLocaleUpperCase("pt-BR")}${p.slice(1)}` : "";
 }
 
-/** Quanto tempo o "digitando…" dura, proporcional ao tamanho da mensagem. */
-export function atrasoDigitando(texto: string, reduzirMovimento: boolean): number {
+/** Tempo fixo (ms) que o "digitando…" fica na tela antes de cada mensagem da assistente. */
+export const ATRASO_MENSAGEM_MS = 3000;
+
+/** Quanto tempo o "digitando…" dura antes de cada mensagem: sempre o mesmo, para a conversa não parecer instantânea. */
+export function atrasoDigitando(_texto: string, reduzirMovimento: boolean): number {
   if (reduzirMovimento) return 0;
-  return Math.min(700, 250 + texto.length * 6);
+  return ATRASO_MENSAGEM_MS;
 }
