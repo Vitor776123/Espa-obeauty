@@ -102,9 +102,9 @@ describe("validações", () => {
 });
 
 describe("atrasoDigitando", () => {
-  it("cresce com o texto, tem teto e some com movimento reduzido", () => {
-    expect(atrasoDigitando("oi", false)).toBeLessThan(atrasoDigitando("uma mensagem bem mais comprida aqui", false));
-    expect(atrasoDigitando("x".repeat(500), false)).toBe(700);
+  it("é de 3 segundos para qualquer mensagem e some com movimento reduzido", () => {
+    expect(atrasoDigitando("oi", false)).toBe(3000);
+    expect(atrasoDigitando("x".repeat(500), false)).toBe(3000);
     expect(atrasoDigitando("oi", true)).toBe(0);
   });
 });

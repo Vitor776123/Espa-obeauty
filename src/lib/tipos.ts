@@ -4,6 +4,7 @@ export type Config = {
   whatsapp: string | null;
   instagram: string | null;
   endereco: string | null;
+  qr_pix_url: string | null;
   sinal_percentual: number;
   hold_minutos: number;
   slot_min: number;

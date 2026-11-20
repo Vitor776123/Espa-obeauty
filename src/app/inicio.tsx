@@ -6,7 +6,7 @@ import Link from "next/link";
 import { carregarDadosChat, type DadosChat, type ServicoChat } from "@/app/agendar/actions";
 import { ChatAgendamento, ChatCarregando } from "@/app/agendar/chat";
 import { Espelho } from "@/components/espelho";
-import { IconeZap } from "@/components/icones";
+import { IconeInstagram, IconeZap } from "@/components/icones";
 import { Marca } from "@/components/marca";
 import { emojiServico } from "@/lib/chat-agendamento";
 import { formatBRL, formatDuracao, soDigitos } from "@/lib/tempo";
@@ -322,50 +322,77 @@ function TelaSobre({ dados, aoVoltar, aoAgendar }: { dados: DadosChat | null; ao
     <div className="flex h-full flex-col bg-perola">
       <Topo titulo="Sobre o salão" aoVoltar={aoVoltar} />
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
-        <div className="relative aspect-[4/5] w-full max-w-xs overflow-hidden rounded-3xl shadow-suave max-md:mx-auto">
-          <Image src="/fotos/salao-placa.webp" alt="Eliana no salão, ao lado da placa Espaço Beauty" fill sizes="20rem" className="object-cover" />
+        {/* foto de um lado, os botões do outro */}
+        <div className="grid grid-cols-[2fr_3fr] gap-4">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-suave">
+            <Image src="/fotos/salao-placa.webp" alt="Eliana no salão, ao lado da placa Espaço Beauty" fill sizes="(min-width:768px) 10rem, 40vw" className="object-cover" />
+          </div>
+          <div className="flex flex-col justify-center gap-3">
+            {zap.length >= 10 ? (
+              <a
+                href={`https://wa.me/55${zap}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn w-full justify-center gap-2 bg-ok !min-h-12 !px-3 text-white shadow-suave hover:brightness-110"
+              >
+                <IconeZap className="h-5 w-5 shrink-0" />
+                WhatsApp
+              </a>
+            ) : null}
+            {insta ? (
+              <a
+                href={`https://instagram.com/${insta}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Instagram @${insta}`}
+                className="btn btn-contorno w-full justify-center gap-2 !min-h-12 !px-3"
+              >
+                <IconeInstagram className="h-5 w-5 shrink-0" />
+                Instagram
+              </a>
+            ) : null}
+            <button type="button" onClick={aoAgendar} className="btn btn-principal w-full justify-center !min-h-12 !px-3">
+              Agendar horário
+            </button>
+          </div>
         </div>
+
         <h3 className="mt-6 text-3xl">Um cantinho para relaxar</h3>
         <p className="mt-2 text-suave">Cadeiras confortáveis, luz suave e o cuidado de quem faz com carinho.</p>
 
-        {dados?.endereco ? (
-          <section className="mt-6">
-            <h4 className="text-lg">Onde fica</h4>
-            <p className="mt-1 text-suave">{dados.endereco}</p>
-          </section>
-        ) : null}
-        {dados && dados.horarios.length > 0 ? (
-          <section className="mt-6">
-            <h4 className="text-lg">Horário</h4>
-            <ul className="mt-1 space-y-0.5 text-suave">
-              {dados.horarios.map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-          </section>
+        {dados?.endereco || (dados && dados.horarios.length > 0) ? (
+          <div className="mt-6 grid gap-x-6 gap-y-5 sm:grid-cols-2">
+            {dados.endereco ? (
+              <section>
+                <h4 className="text-lg">Onde fica</h4>
+                <p className="mt-1 text-suave">{dados.endereco}</p>
+              </section>
+            ) : null}
+            {dados.horarios.length > 0 ? (
+              <section>
+                <h4 className="text-lg">Horário</h4>
+                <ul className="mt-1 space-y-0.5 text-suave">
+                  {dados.horarios.map((l) => (
+                    <li key={l}>{l}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </div>
         ) : null}
 
-        <div className="mt-7 space-y-3">
-          {zap.length >= 10 ? (
-            <a
-              href={`https://wa.me/55${zap}`}
-              target="_blank"
-              rel="noreferrer"
-              className="btn w-full justify-center gap-2.5 bg-ok !min-h-14 text-white shadow-suave hover:brightness-110"
-            >
-              <IconeZap className="h-5 w-5" />
-              Chamar no WhatsApp
-            </a>
-          ) : null}
-          {insta ? (
-            <a href={`https://instagram.com/${insta}`} target="_blank" rel="noreferrer" className="btn btn-contorno !min-h-14 w-full justify-center">
-              Instagram @{insta}
-            </a>
-          ) : null}
-          <button type="button" onClick={aoAgendar} className="btn btn-principal !min-h-14 w-full justify-center">
-            Agendar horário
-          </button>
-        </div>
+        {dados?.qrPix ? (
+          <section className="mt-6 flex items-center gap-4 rounded-3xl bg-white p-4 shadow-suave">
+            <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl bg-white">
+              <Image src={dados.qrPix} alt="QR Code do PIX" fill sizes="8rem" unoptimized className="object-contain" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-lg">Pagar com PIX</h4>
+              <p className="mt-1 text-sm text-suave">Aponte a câmera do banco para o QR Code.</p>
+              {dados.pixFavorecido ? <p className="mt-1 text-sm font-medium">{dados.pixFavorecido}</p> : null}
+            </div>
+          </section>
+        ) : null}
       </div>
     </div>
   );
@@ -488,7 +515,7 @@ export function Inicio() {
   return (
     <div
       style={viewport ? { height: viewport.h, top: viewport.top, bottom: "auto" } : undefined}
-      className="fixed inset-0 overflow-hidden bg-ameixa [--alt:100dvh] md:static md:mx-auto md:my-6 md:h-[min(52rem,calc(100dvh-3rem))] md:max-w-md md:rounded-[2rem] md:border md:border-linha md:shadow-camarim md:[--alt:min(52rem,calc(100dvh-3rem))]"
+      className="fixed inset-0 overflow-hidden bg-ameixa [--alt:100dvh] md:relative md:mx-auto md:my-6 md:h-[min(52rem,calc(100dvh-3rem))] md:max-w-md md:rounded-[2rem] md:border md:border-linha md:shadow-camarim md:[--alt:min(52rem,calc(100dvh-3rem))]"
     >
       <div className={`tela ${baseCoberta ? "tela-coberta" : ""}`} inert={baseCoberta}>
         <TelaInicial

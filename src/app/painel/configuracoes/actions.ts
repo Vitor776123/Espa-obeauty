@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/supabase/admin";
 import { membroOuErro } from "@/lib/auth";
@@ -154,5 +155,42 @@ export async function redefinirSenhaEquipe(userId: string, novaSenha: string): P
     return { ok: true, aviso: "Senha trocada. Avise a pessoa. Se essa conta também é usada em outro app, a senha de lá muda junto." };
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : "Não foi possível trocar a senha." };
+  }
+}
+
+/* ---------------- QR Code do PIX ---------------- */
+const BUCKET_QR = "beauty-servicos";
+
+/** Envia a imagem do QR Code do PIX e já deixa salva nas configurações. A imagem não é reduzida, para o QR continuar nítido. */
+export async function enviarQrPix(form: FormData): Promise<{ ok: true; url: string } | { ok: false; erro: string }> {
+  try {
+    await membroOuErro({ admin: true });
+    const arquivo = form.get("qr");
+    if (!(arquivo instanceof File) || arquivo.size === 0) return { ok: false, erro: "Escolha uma imagem." };
+    if (!["image/jpeg", "image/png", "image/webp"].includes(arquivo.type)) return { ok: false, erro: "Use uma imagem JPG, PNG ou WebP." };
+    if (arquivo.size > 3 * 1024 * 1024) return { ok: false, erro: "A imagem é grande demais (máximo 3 MB)." };
+    const ext = arquivo.type === "image/png" ? "png" : arquivo.type === "image/webp" ? "webp" : "jpg";
+    const caminho = `pix/${randomUUID()}.${ext}`;
+    const { error } = await db().storage.from(BUCKET_QR).upload(caminho, arquivo, { contentType: arquivo.type, cacheControl: "31536000" });
+    if (error) return { ok: false, erro: `Falha no envio da imagem: ${error.message}` };
+    const { data } = db().storage.from(BUCKET_QR).getPublicUrl(caminho);
+    const { error: e2 } = await db().from("configuracoes").update({ qr_pix_url: data.publicUrl }).eq("id", 1);
+    if (e2) return { ok: false, erro: e2.message };
+    revalidatePath("/", "layout");
+    return { ok: true, url: data.publicUrl };
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : "Não foi possível enviar o QR Code." };
+  }
+}
+
+export async function removerQrPix(): Promise<Resp> {
+  try {
+    await membroOuErro({ admin: true });
+    const { error } = await db().from("configuracoes").update({ qr_pix_url: null }).eq("id", 1);
+    if (error) return { ok: false, erro: error.message };
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : "Não foi possível remover o QR Code." };
   }
 }
