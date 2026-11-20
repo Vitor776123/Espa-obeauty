@@ -23,7 +23,10 @@
   --color-alerta: #a0560f;
   --color-erro: #b3261e;
 
-  --font-display: "Bodoni Moda Variable", "Bodoni 72", Didot, "Times New Roman", serif;
+  /* Títulos na mesma fonte do texto (mais fácil de ler no celular).
+     A Bodoni fica só no nome da marca. */
+  --font-display: "Hanken Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-marca: "Bodoni Moda Variable", "Bodoni 72", Didot, "Times New Roman", serif;
   --font-sans: "Hanken Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --shadow-suave: 0 1px 2px rgb(59 21 38 / 0.06), 0 12px 32px -12px rgb(59 21 38 / 0.18);
@@ -60,9 +63,9 @@ h3,
 h4 {
   font-family: var(--font-display);
   font-optical-sizing: auto;
-  font-weight: 500;
-  letter-spacing: -0.015em;
-  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
   text-wrap: balance;
 }
 

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/bodoni-moda/opsz.css";
 import "@fontsource-variable/bodoni-moda/opsz-italic.css";
 import "@fontsource-variable/hanken-grotesk/wght.css";
+import "@fontsource-variable/hanken-grotesk/wght-italic.css";
 import "./globals.css";
 
 const site = process.env.NEXT_PUBLIC_SITE_URL;

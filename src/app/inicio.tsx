@@ -195,7 +195,7 @@ function TelaServicos({ dados, erro, aoVoltar, aoGrupo, aoTentar }: { dados: Dad
                       <FotoServico s={capa} sizes="80px" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-display text-[1.35rem] leading-tight">
+                      <span className="block font-display text-[1.3rem] font-semibold leading-tight">
                         {g.emoji} {g.chamada}
                       </span>
                       <span className="mt-1 block text-sm text-suave">
