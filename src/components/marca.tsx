@@ -22,7 +22,7 @@ export function Marca({
       ) : null}
       <span className="flex flex-col leading-none">
         <span
-          className={`font-display italic ${tamanho === "grande" ? "text-4xl" : "text-[1.65rem]"} font-medium tracking-tight`}
+          className={`font-marca italic ${tamanho === "grande" ? "text-4xl" : "text-[1.65rem]"} font-medium tracking-tight`}
         >
           Espaço Beauty
         </span>
